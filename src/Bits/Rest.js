@@ -8,8 +8,6 @@ const request = function (method, route, data = {}) {
         method = 'POST';
     }
 
-    data.query_timestamp = Date.now();
-
     return new Promise((resolve, reject) => {
         window.jQuery.ajax({
             url: url,
@@ -37,6 +35,25 @@ export default {
     },
     patch(route, data = {}) {
         return request('PATCH', route, data);
+    },
+    rawRequest(route, data, method = 'POST') {
+        const url = `${window.WordCampEntryAdmin.rest.url}/${route}`;
+
+        const headers = {'X-WP-Nonce': window.WordCampEntryAdmin.rest.nonce};
+
+        return new Promise((resolve, reject) => {
+            window.jQuery.ajax({
+                url: url,
+                type: method,
+                data: data,
+                headers: headers,
+                cache: false,
+                contentType: false,
+                processData: false
+            })
+                .then(response => resolve(response))
+                .fail(errors => reject(errors.responseJSON));
+        });
     }
 };
 

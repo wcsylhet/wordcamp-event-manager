@@ -1,6 +1,6 @@
 <template>
     <div class="event_home box_wrapper">
-        <div class="box_narrow">
+        <div v-loading="fetchingEvent" class="box_narrow">
             <div class="box_header">
                 <div class="box_head">
                     <el-breadcrumb separator-class="el-icon-arrow-right">
@@ -17,7 +17,7 @@
                     </el-col>
                     <el-col md="18" :sm="12">
                         <h4 style="margin: 5px 0">Search Attendee by ID or Email</h4>
-                        <el-input size="large" @keyup.enter.native="searchAttendee" v-model="search"
+                        <el-input clearable size="large" v-loading="saving" @keyup.enter.native="searchAttendee" v-model="search"
                                   placeholder="Search Attendee">
                             <template #append>
                                 <el-button @click="searchAttendee" type="success">Find</el-button>
@@ -31,10 +31,10 @@
                 <div class="box_header">
                     <div class="box_head">
                         <h3>Attendee Details</h3>
-                        <el-tag type="danger">{{attendee.attendee_uid}}</el-tag>
+                        <el-tag type="danger">{{ attendee.attendee_uid }}</el-tag>
                     </div>
                     <div class="box_actions">
-                        <el-button v-if="!isCheckedIn" type="danger">Mark As Checked-In</el-button>
+                        <el-button :disabled="saving" v-loading="saving" @click="checkin()" v-if="!isCheckedIn" type="danger">Mark As Checked-In</el-button>
                         <el-button :readonly="true" :disabled="true" v-else type="default">Checked-in</el-button>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                         <el-col :md="3" :sm="12">
                             <div class="attendee_avatar">
                                 <img :src="attendee.avatar" alt="Avatar">
-                                <el-tag type="success">{{attendee.attendee_type}}</el-tag>
+                                <el-tag type="success">{{ attendee.attendee_type }}</el-tag>
                             </div>
                         </el-col>
                         <el-col :md="21" :sm="12">
@@ -55,8 +55,10 @@
                                     <li>{{ attendee.email }}</li>
                                     <li>
                                         <span class="icon">
-                                            <svg fill="#000000" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
-     viewBox="0 0 295.526 295.526" xml:space="preserve">
+                                            <svg fill="#000000" version="1.1" id="Capa_1"
+                                                 xmlns="http://www.w3.org/2000/svg"
+                                                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                 viewBox="0 0 295.526 295.526" xml:space="preserve">
 <g>
 	<path d="M147.763,44.074c12.801,0,23.858-8.162,27.83-20.169c-7.578,2.086-17.237,3.345-27.83,3.345
 		c-10.592,0-20.251-1.259-27.828-3.345C123.905,35.911,134.961,44.074,147.763,44.074z"/>
@@ -71,16 +73,19 @@
 </g>
 </svg>
                                         </span>
-                                        {{attendee.tshirt_size}}
+                                        {{ attendee.tshirt_size }}
                                     </li>
-                                    <li>Purchase Date: {{attendee.purchase_at}}</li>
+                                    <li>Purchase Date: {{ attendee.purchase_at }}</li>
                                 </ul>
 
                                 <div v-if="attendee.events && attendee.events.length" class="pl-2 mb-4">
                                     <h3>Completed Events:</h3>
                                     <ul class="listed_data">
                                         <li v-for="eventItem in attendee.events" :key="eventItem.id">
-                                            <el-icon><SelectIcon /></el-icon> {{eventItem.title}} @ {{eventItem.created_at}}
+                                            <el-icon>
+                                                <SelectIcon/>
+                                            </el-icon>
+                                            {{ eventItem.title }} @ {{ eventItem.created_at }}
                                         </li>
                                     </ul>
                                 </div>
@@ -110,7 +115,9 @@ export default {
             attendee: false,
             search: '',
             loading: false,
-            event_id: this.$route.params.id
+            event_id: this.$route.params.id,
+            saving: false,
+            fetchingEvent: false
         }
     },
     computed: {
@@ -129,13 +136,26 @@ export default {
     },
     methods: {
         maybeFetchEvent() {
-            if(window.currentEventItem) {
+            if (window.currentEventItem) {
                 this.event = window.currentEventItem;
                 return;
             }
+
+            this.fetchingEvent = true;
+            this.$get('events/' + this.event_id)
+                .then(response => {
+                    this.event = response.event;
+                    window.currentEventItem = this.event;
+                })
+                .catch((errors) => {
+                    this.$handleError(errors);
+                })
+                .finally(() => {
+                    this.fetchingEvent = false;
+                });
         },
         handleScan(code) {
-            if(code == this.search) {
+            if (code == this.search) {
                 return;
             }
             this.search = code;
@@ -153,6 +173,23 @@ export default {
                 })
                 .finally(() => {
                     this.loading = false;
+                });
+        },
+        checkin() {
+            this.saving = true;
+            this.$post('checkin', {
+                attendee_id: this.attendee.id,
+                event_id: this.event_id
+            })
+                .then(response => {
+                    this.attendee.events = response.attendee.events;
+                    this.$notify.success(response.message);
+                })
+                .catch((errors) => {
+                    this.$handleError(errors);
+                })
+                .finally(() => {
+                    this.saving = false;
                 });
         }
     },

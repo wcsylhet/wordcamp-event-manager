@@ -17,6 +17,12 @@
                 <el-button v-for="event in events" size="large" :key="event.id" type="primary" @click="goEventPage(event)">
                     {{ event.title }}
                 </el-button>
+
+                <h3>Other Actions</h3>
+                <ul class="listed_data">
+                    <li><router-link :to="{ name: 'admin' }">Admin Panel</router-link></li>
+                    <li><router-link :to="{ name: 'attendees' }">Attendees</router-link></li>
+                </ul>
             </div>
         </div>
     </div>

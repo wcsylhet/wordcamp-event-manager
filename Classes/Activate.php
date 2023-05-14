@@ -30,12 +30,12 @@ class Activate
                 first_name varchar(192) NOT NULL,
                 last_name varchar(192) NULL,
                 email varchar(194) NOT NULL,
-                twiter_username varchar(194) NOT NULL,
+                twitter_username varchar(194) NOT NULL,
                 phone_number varchar(50) NULL,
                 country varchar(50) NULL, 
                 purchase_at timestamp  NULL DEFAULT NULL,
                 last_modified_at timestamp NULL DEFAULT NULL,
-                other_detals LONGTEXT NULL DEFAULT NULL,
+                other_details LONGTEXT NULL DEFAULT NULL,
                 PRIMARY KEY  (id),
                 KEY attendee_uid (attendee_uid),
                 KEY email (email)
@@ -49,20 +49,18 @@ class Activate
     {
         global $wpdb;
 
-        $tableName = $wpdb->prefix . 'wep_attendee_events';
+        $tableName = $wpdb->prefix . 'wep_events';
         $charsetCollate = $wpdb->get_charset_collate();
 
         if ($wpdb->get_var("SHOW TABLES LIKE '$tableName'") != $tableName) {
             $sql = "CREATE TABLE $tableName (
                 id bigint UNSIGNED NOT NULL AUTO_INCREMENT, 
-                attendee_id BIGINT NOT NULL,
-                event_id BIGINT NOT NULL,
-                remarks TEXT NULL DEFAULT NULL,
+                title VARCHAR(194) NOT NULL,
+                description LONGTEXT NULL,
                 created_by BIGINT NULL,
                 created_at timestamp NOT NULL,
                 PRIMARY KEY  (id),
-                KEY attendee_id (attendee_id),
-                KEY event_id (event_id)
+                KEY title (title)
             ) $charsetCollate;";
             dbDelta($sql);
         }

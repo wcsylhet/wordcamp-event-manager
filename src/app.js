@@ -41,6 +41,7 @@ app.mixin({
         $post: Rest.post,
         $put: Rest.put,
         $del: Rest.delete,
+        $rawRequest: Rest.rawRequest,
         changeTitle(title) {
             jQuery('head title').text(title + ' - Fluent Auth');
         },
