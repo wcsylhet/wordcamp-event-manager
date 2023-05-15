@@ -22,6 +22,7 @@
                 <ul class="listed_data">
                     <li><router-link :to="{ name: 'admin' }">Admin Panel</router-link></li>
                     <li><router-link :to="{ name: 'attendees' }">Attendees</router-link></li>
+                    <li><router-link :to="{ name: 'prints' }">Print ID Cards</router-link></li>
                 </ul>
             </div>
         </div>

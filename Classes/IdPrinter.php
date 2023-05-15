@@ -12,16 +12,24 @@ class IdPrinter
             }
 
             $type = sanitize_text_field($_REQUEST['sc_print_id']);
+            $printStatus = 'all';
+            if(isset($_REQUEST['sc_print_status'])) {
+                $printStatus = sanitize_text_field($_REQUEST['sc_print_status']);
+            }
 
-            $this->printIds($type);
+            $this->printIds($type, $printStatus);
         });
     }
 
-    public function printIds($type)
+    public function printIds($type, $printStatus = 'all')
     {
         global $wpdb;
 
-        $attendees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wep_attendees WHERE attendee_type = '{$type}'");
+        if($printStatus == 'all') {
+            $attendees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wep_attendees WHERE attendee_type = '{$type}'");
+        } else {
+            $attendees = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}wep_attendees WHERE attendee_type = '{$type}' AND id_printed = '{$printStatus}'");
+        }
 
         foreach ($attendees as $attendee) {
             $attendee->image = $this->getAttendeePhoto($attendee);

@@ -30,6 +30,7 @@ class Activate
                 first_name varchar(192) NOT NULL,
                 last_name varchar(192) NULL,
                 email varchar(194) NOT NULL,
+                id_printed varchar(50) NOT NULL DEFAULT 'no',
                 twitter_username varchar(194) NOT NULL,
                 phone_number varchar(50) NULL,
                 country varchar(50) NULL, 

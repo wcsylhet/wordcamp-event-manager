@@ -35,6 +35,7 @@ mix.options({
     processCssUrls: false
 });
 
-//mix.js('src/app.js', 'dist/app.js').vue({ version: 3 });
-mix.sass('src/print.scss', 'dist/print.css');
+mix.sass('src/print.scss', 'dist/print.css')
+    .js('src/app.js', 'dist/app.js')
+    .vue({ version: 3 });
 

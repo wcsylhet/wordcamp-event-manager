@@ -39,7 +39,7 @@
 
 <script type="text/babel">
 export default {
-    name: 'EventTypes',
+    name: 'event-types-page',
     data() {
         return {
             event_types: [],

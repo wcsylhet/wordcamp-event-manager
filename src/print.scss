@@ -120,7 +120,6 @@
     }
 }
 
-
 .for_attendee{
     .card_holder {
         background-image: url("./img/attendee-bg.png");
@@ -140,4 +139,22 @@
     }
 }
 
+.for_volunteer {
+    .card_holder {
+        background-image: url("./img/attendee-bg.png");
+    }
+    .attendee_top .name_holder {
+        top: 77vh;
+        color: white;
+    }
+    .attendee_top .attendee_id {
+        left: 10px;
+        top: 5px;
+        color: #dadada;
+        font-size: 8px;
+    }
+    .attendee_top .qr_code {
+        top: 54.5vh;
+    }
+}
 

@@ -218,6 +218,50 @@ class CheckinController
         ];
     }
 
+    public function getCardTypes(\WP_REST_Request $request)
+    {
+        global $wpdb;
+
+        $tableName = $wpdb->prefix . 'wep_attendees';
+
+        $cardTypes = $wpdb->get_results("SELECT attendee_type,
+                   SUM(CASE WHEN id_printed = 'yes' THEN 1 ELSE 0 END) AS printed_count,
+                   SUM(CASE WHEN id_printed = 'no' THEN 1 ELSE 0 END) AS non_printed_count 
+                   FROM $tableName GROUP BY attendee_type;");
+
+        return [
+            'card_types' => $cardTypes
+        ];
+    }
+
+    public function updatePrintStatus(\WP_REST_Request $request)
+    {
+        $type = sanitize_text_field($request->get_param('type'));
+        $status = sanitize_text_field($request->get_param('status'));
+        if($status != 'yes') {
+            $status = 'no';
+        }
+
+        if(!$type) {
+            return new \WP_Error(423, 'Type is required');
+        }
+
+        global $wpdb;
+        $wpdb->update(
+            $wpdb->prefix . 'wep_attendees',
+            [
+                'id_printed' => $status
+            ],
+            [
+                'attendee_type' => $type
+            ]
+        );
+
+        return [
+            'message' => 'Print status updated'
+        ];
+    }
+
     public function searchAttendee(\WP_REST_Request $request,)
     {
         global $wpdb;

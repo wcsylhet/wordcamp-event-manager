@@ -1,15 +1,15 @@
 <template>
     <div>
-        <event-types />
+        <wp-event-type-page />
     </div>
 </template>
 
 <script type="text/babel">
-import EventTypes from './Parts/EventTypes.vue'
+import EventTypesPage from './Parts/EventTypesPage.vue'
 export default {
     name: 'Administrator',
     components: {
-        EventTypes
+        'wp-event-type-page': EventTypesPage
     },
 }
 </script>

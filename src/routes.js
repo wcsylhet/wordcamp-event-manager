@@ -2,6 +2,7 @@ import Dashboard from './Components/Dashboard.vue';
 import EventHome from './Components/EventHome.vue';
 import Administration from './Components/Adminstrator.vue';
 import Attendees from './Components/Attendees.vue';
+import IdCardPrinter from './Components/Parts/IdCardPrinter.vue';
 
 export var routes = [
     {
@@ -32,6 +33,14 @@ export var routes = [
         path: '/attendees',
         name: 'attendees',
         component: Attendees,
+        meta: {
+            active: 'attendees'
+        }
+    },
+    {
+        path: '/id-printers',
+        name: 'prints',
+        component: IdCardPrinter,
         meta: {
             active: 'attendees'
         }

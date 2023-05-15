@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 define('WP_SYL_ENTRY_PASS_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WP_SYL_ENTRY_PASS_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_SYL_ENTRY_PASS_PLUGIN_VERSION', time());
-if(!defined('WP_SYL_ORGANIZER_PORTAL_SLUG')) {
+if (!defined('WP_SYL_ORGANIZER_PORTAL_SLUG')) {
     define('WP_SYL_ORGANIZER_PORTAL_SLUG', 'portal');
 }
 
@@ -35,21 +35,19 @@ class WordCampEntryPass
         add_action('admin_menu', [$this, 'registerAdminMenu']);
         add_action('rest_api_init', [$this, 'registerRestApi']);
         (new \WordCampEntryPass\Classes\IdPrinter())->register();
-
         if (defined('WP_SYL_ORGANIZER_PORTAL_SLUG')) {
             // add a custom url endpoint with the WP_SYL_ORGANIZER_PORTAL_SLUG
-
-            add_action('template_redirect', function($template) {
-                if(get_query_var('name') == WP_SYL_ORGANIZER_PORTAL_SLUG) {
-                    header('HTTP/1.1 200 OK');
-                    $adminVars = $this->getAppVars();
-                    include WP_SYL_ENTRY_PASS_PLUGIN_DIR.'assets/portal.php';
-                    exit();
+            add_action('template_redirect', function ($template) {
+                if (get_query_var('name') == WP_SYL_ORGANIZER_PORTAL_SLUG) {
+                    if(is_user_logged_in()) {
+                        header('HTTP/1.1 200 OK');
+                        $adminVars = $this->getAppVars();
+                        include WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'assets/portal.php';
+                        exit();
+                    }
                 }
             });
-
         }
-
     }
 
     public function registerAdminMenu()
@@ -86,6 +84,8 @@ class WordCampEntryPass
         $router->post('/checkin', [$checkInController, 'recordAttendance'], []);
         $router->get('/search-attendee', [$checkInController, 'searchAttendee'], []);
         $router->get('/attendees', [$checkInController, 'getAttendees'], []);
+        $router->get('/attendees/card-types', [$checkInController, 'getCardTypes'], []);
+        $router->post('/attendees/mark-print-status', [$checkInController, 'updatePrintStatus'], []);
     }
 
     public function checkPermission()
@@ -108,6 +108,7 @@ class WordCampEntryPass
             "name"  => 'WordCamp Entry Pass',
             "slug"  => 'wordcamp-entry-pass',
             "nonce" => wp_create_nonce("wp_rest"),
+            'site_url' => site_url('/'),
             'rest'  => [
                 'url'       => rest_url($this->namespace),
                 'nonce'     => wp_create_nonce('wp_rest'),
