@@ -48,6 +48,10 @@ class IdPrinter
         $name = trim($name);
         // remove multiple spaces
         $name = preg_replace('/\s+/', ' ', $name);
+
+        // remove . from starting of the string
+        $name = preg_replace('/^\./', '', $name);
+
         // make the name as Title case
         return ucwords(strtolower($name));
     }
@@ -70,7 +74,7 @@ class IdPrinter
             2382 => 'https://sylhet.wordcamp.org/2023/files/2023/05/FB_IMG_1682935564010-Md.-Mehdi-Hasan-300x300.jpg',
             2383 => 'https://sylhet.wordcamp.org/2023/files/2023/05/omarsohrab-Omar-Sohrab-300x300.jpg',
             2384 => 'https://sylhet.wordcamp.org/2023/files/2023/05/sumon-FullStack-Web-300x300.jpg',
-            2385 => 'https://sylhet.wordcamp.org/2023/files/2023/05/rsz_tasnova-Tasnova-Chowdhury-300x300.jpeg',
+            2385 => 'https://sylhet.wordcamp.org/2023/files/2023/05/tasnova.jpg',
             2386 => 'https://sylhet.wordcamp.org/2023/files/2023/05/F91E926A-2D30-4F53-BA70-C5E1DAD7214E-Shovonix-300x300.jpeg',
             2387 => 'https://sylhet.wordcamp.org/2023/files/2023/05/WP-Md.-Shamsul-Islam-300x300.jpg',
             2388 => 'https://sylhet.wordcamp.org/2023/files/2023/05/faizus-Faizus-Saleheen-300x300.png',
@@ -89,6 +93,7 @@ class IdPrinter
             4052 => 'https://sylhet.wordcamp.org/2023/files/2023/05/nakib-Lukman-Nakib-300x300.jpg',
             4053 => 'https://sylhet.wordcamp.org/2023/files/2023/05/M0n3CyF6_400x400-300x300.jpeg',
             2572 => 'https://sylhet.wordcamp.org/2023/files/2023/05/Rahabi-Khan-Rahabi-Khan-300x300.png',
+            5347 => 'https://sylhet.wordcamp.org/2023/files/2023/05/enayet-img-Mohammed-Enayet-Chowdhury-300x300.jpg'
         ];
 
         if(isset($photos[$attendee->attendee_uid])) {

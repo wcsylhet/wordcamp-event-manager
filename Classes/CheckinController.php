@@ -101,21 +101,8 @@ class CheckinController
         // make the header lowercase
         $header = array_map('strtolower', $header);
 
-        $validPrimaryColumns = [
-            'attendee_uid',
-            'ticket_type',
-            'attendee_type',
-            'counter',
-            'first_name',
-            'last_name',
-            'email',
-            'purchase_at',
-            'last_modified_at',
-            'twitter_username',
-            'tshirt_size',
-            'phone_number',
-            'other_details'
-        ];
+        $validPrimaryColumns = AttendeeModel::getPrimaryColumns();
+        $validPrimaryColumns[] = 'other_details';
 
         $requiredColumns = [
             'attendee_uid',
@@ -135,12 +122,15 @@ class CheckinController
             $data = array_combine($header, $row);
             // get only the valid columns
             $validData = array_intersect_key($data, array_flip($validPrimaryColumns));
+
+
             $otherData = array_diff_key($data, array_flip($validPrimaryColumns));
             $validData = array_filter($validData);
             // check if all the required columns are present
             $missingColumns = array_diff_key(array_flip($requiredColumns), $validData);
+
             if (!empty($missingColumns) || !is_email($validData['email'])) {
-                return new \WP_Error(423, 'Missing required columns for attendee ' . $data['attendee_id']);
+                return new \WP_Error(423, 'Missing required columns for attendee ' . $data['attendee_uid'].' or invalid email ');
             }
 
             // now fill $validPrimaryColumns with $validData if any key is missing
@@ -149,7 +139,13 @@ class CheckinController
                     $validData[$key] = '';
                 }
             }
+
+            $validData['email'] = trim(strtolower($validData['email']));
             $validData['other_details'] = maybe_serialize($otherData);
+
+            if(empty($validData['id_printed'])) {
+                $validData['id_printed'] = 'no';
+            }
 
             $validItems[] = $validData;
         }
@@ -167,54 +163,18 @@ class CheckinController
 
     public function getAttendees(\WP_REST_Request $request)
     {
-        global $wpdb;
+        $args = [
+            'search' => sanitize_text_field($request->get_param('search')),
+            'event_id' => (int) $request->get_param('event_id'),
+            'per_page' => (int) $request->get_param('per_page') ?: 10,
+            'page' => (int) $request->get_param('page') ?: 1,
+        ];
 
-        $tableName = $wpdb->prefix . 'wep_attendees';
-
-        $perPage = (int) $request->get_param('per_page') ?: 10;
-        $page = (int) $request->get_param('page') ?: 1;
-        $offset = ($page - 1) * $perPage;
-
-        $sqlWhere = '';
-        $search = sanitize_text_field($request->get_param('search'));
-
-        $placeholders = [];
-
-        if($search) {
-            $wherePlaceholders = [];
-            $sqlWhere = "WHERE (attendee.attendee_uid LIKE '%s' OR attendee.first_name LIKE '%s' OR attendee.last_name LIKE '%s' OR attendee.email LIKE '%s')";
-            $wherePlaceholders[] = '%'.$search.'%';
-            $wherePlaceholders[] = '%'.$search.'%';
-            $wherePlaceholders[] = '%'.$search.'%';
-            $wherePlaceholders[] = '%'.$search.'%';
-            $sqlWhere = $wpdb->prepare($sqlWhere, $wherePlaceholders);
-        }
-
-        $sql = "SELECT * FROM $tableName as attendee";
-
-        $eventId = $request->get_param('event_id');
-
-        if($eventId) {
-            $sql .= " ".$wpdb->prepare("INNER JOIN {$wpdb->prefix}wep_attendee_events as event ON event.attendee_id = attendee.id", );
-            $sqlWhere .= " AND event.event_id = $eventId";
-        }
-
-        if($sqlWhere) {
-            $sql .= ' '.$sqlWhere;
-        }
-
-        $placeholders[] = $perPage;
-        $placeholders[] = $offset;
-
-        $attendees = $wpdb->get_results($wpdb->prepare($sql." LIMIT %d OFFSET %d", $placeholders));
-
-        foreach ($attendees as $attendee) {
-            $attendee->other_details = maybe_unserialize($attendee->other_details);
-        }
+        $attendeesData = AttendeeModel::getAttendees($args, true);
 
         return [
-            'attendees' => $attendees,
-            'total' => $wpdb->get_var(str_replace('SELECT *', 'SELECT COUNT(*)', $sql.' LIMIT 1'))
+            'attendees' => $attendeesData['data'],
+            'total' => $attendeesData['total']
         ];
     }
 
@@ -378,6 +338,7 @@ class CheckinController
                 if (!$willUpdate) {
                     return $attendee->id;
                 }
+                $data = array_filter($data);
                 $wpdb->update(
                     $wpdb->prefix . 'wep_attendees',
                     $data,

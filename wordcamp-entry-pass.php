@@ -32,9 +32,13 @@ class WordCampEntryPass
     public function boot()
     {
         $this->loadDependencies();
+
         add_action('admin_menu', [$this, 'registerAdminMenu']);
         add_action('rest_api_init', [$this, 'registerRestApi']);
+
         (new \WordCampEntryPass\Classes\IdPrinter())->register();
+        (new \WordCampEntryPass\Classes\Hooks())->register();
+
         if (defined('WP_SYL_ORGANIZER_PORTAL_SLUG')) {
             // add a custom url endpoint with the WP_SYL_ORGANIZER_PORTAL_SLUG
             add_action('template_redirect', function ($template) {
@@ -47,6 +51,11 @@ class WordCampEntryPass
                     }
                 }
             });
+        }
+
+        if (defined('WP_CLI') && WP_CLI) {
+            require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/CLITool.php';
+            \WP_CLI::add_command('syl_event', '\WordCampEntryPass\Classes\CLITool');
         }
     }
 
@@ -95,9 +104,11 @@ class WordCampEntryPass
 
     private function loadDependencies()
     {
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/AttendeeModel.php';
         require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/Router.php';
         require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/CheckInController.php';
         require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/IdPrinter.php';
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/Hooks.php';
     }
 
     private function getAppVars()
@@ -109,6 +120,7 @@ class WordCampEntryPass
             "slug"  => 'wordcamp-entry-pass',
             "nonce" => wp_create_nonce("wp_rest"),
             'site_url' => site_url('/'),
+            'ajax_url' => admin_url('admin-ajax.php'),
             'rest'  => [
                 'url'       => rest_url($this->namespace),
                 'nonce'     => wp_create_nonce('wp_rest'),

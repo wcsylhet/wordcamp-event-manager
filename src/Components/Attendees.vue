@@ -11,6 +11,7 @@
                 </div>
                 <div class="box_actions">
                     <el-button @click="dialogVisible = true" type="primary">Import Attendees</el-button>
+                    <el-button @click="exportAttendees()" type="default">Export Attendees</el-button>
                 </div>
             </div>
             <div class="box_body" style="margin-bottom: 20px; padding-bottom: 10px;">
@@ -20,13 +21,17 @@
                             <el-input clearable size="large" @keyup.enter.native="fetchAttendees" v-model="search"
                                       placeholder="Search Attendee">
                                 <template #append>
-                                    <el-button :disabled="loading" v-loading="loading" @click="fetchAttendees" type="success">Search</el-button>
+                                    <el-button :disabled="loading" v-loading="loading" @click="fetchAttendees"
+                                               type="success">Search
+                                    </el-button>
                                 </template>
                             </el-input>
                         </el-col>
                         <el-col md="12" :sm="12">
-                            <el-select @change="fetchAttendees" v-model="eventType" placeholder="Search by Event Checkin" clearable size="large">
-                                <el-option v-for="type in eventTypes" :key="type.id" :label="type.title" :value="type.id"></el-option>
+                            <el-select @change="fetchAttendees" v-model="eventType"
+                                       placeholder="Search by Event Checkin" clearable size="large">
+                                <el-option v-for="type in eventTypes" :key="type.id" :label="type.title"
+                                           :value="type.id"></el-option>
                             </el-select>
                         </el-col>
                     </el-row>
@@ -34,7 +39,7 @@
                 <el-table v-loading="loading" :data="attendees" border stripe>
                     <el-table-column type="expand">
                         <template #default="props">
-                            <pre>{{props.row}}</pre>
+                            <pre>{{ props.row }}</pre>
                         </template>
                     </el-table-column>
                     <el-table-column prop="attendee_uid" label="UID" width="90"></el-table-column>
@@ -54,7 +59,7 @@
                     <el-table-column prop="phone_number" label="Phone Number" width="150"></el-table-column>
                 </el-table>
 
-                <hr style="margin: 20px 0;" />
+                <hr style="margin: 20px 0;"/>
 
                 <pagination :pagination="pagination" @fetch="fetchAttendees"></pagination>
             </div>
@@ -64,14 +69,16 @@
             <el-form enctype="multipart/form-data" label-position="top" id="csv_upload_form" ref="csv_form">
                 <el-form-item label="Your CSV Should have following Columns">
                     <p>{{ columns.join(', ') }}</p>
-                    <p><b>Required Columns:</b> attendee_uid, first_name, email. Only new attendee_uid rows will be imported</p>
+                    <p><b>Required Columns:</b> attendee_uid, first_name, email. Only new attendee_uid rows will be
+                        imported</p>
                 </el-form-item>
                 <el-form-item label="Upload Your Formatted CSV">
                     <input type="file" name="attendee_csv"/>
                 </el-form-item>
                 <el-form-item>
                     <label>
-                        <input id="update_if_exist" type="checkbox" name="update_if_exist"> Update Attendee if Exist in the database
+                        <input id="update_if_exist" type="checkbox" name="update_if_exist"> Update Attendee if Exist in
+                        the database
                     </label>
                 </el-form-item>
                 <el-form-item>
@@ -87,6 +94,7 @@
 
 <script type="text/babel">
 import Pagination from '../Bits/Pagination.vue'
+
 export default {
     name: 'Attendees',
     components: {
@@ -168,6 +176,21 @@ export default {
                 .finally(() => {
                     this.loading = false;
                 });
+        },
+        exportAttendees() {
+            const args = {
+                action: 'syl_event_attendee_export',
+                search: this.search,
+                event_id: this.eventType
+            };
+
+            let url = this.appVars.ajax_url;
+            // append args as query parameters to url
+            url += '?' + Object.keys(args).map(key => {
+                return encodeURIComponent(key) + '=' + encodeURIComponent(args[key]);
+            }).join('&');
+
+            window.open(url, '_blank');
         }
     },
     mounted() {
