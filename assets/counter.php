@@ -8,6 +8,8 @@ if (!defined('ABSPATH')) {
 <head>
     <meta charSet="utf-8"/>
     <title>Find Your Registration Counter - WordCamp Sylhet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
         * {
             font-family: "Inter var", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, sans-serif;

@@ -57,6 +57,7 @@ class WordCampEntryPass
             });
         }
 
+
         if (defined('WP_SYL_COUNTER_FINDER')) {
             // add a custom url endpoint with the WP_SYL_ORGANIZER_PORTAL_SLUG
             add_action('template_redirect', function ($template) {
@@ -129,15 +130,16 @@ class WordCampEntryPass
 
         $router = new \WordCampEntryPass\Classes\Router($this->namespace);
 
-        $router->get('/events', [$checkInController, 'events'], []);
-        $router->post('/events', [$checkInController, 'createEvent'], ['manage_options']);
+        $router->get('/events', [$checkInController, 'events'], ['edit_posts']);
+        $router->post('/events', [$checkInController, 'createEvent'], ['edit_posts']);
         $router->post('/attendees/import', [$checkInController, 'importAttendeeCsv'], ['manage_options']);
-        $router->get('/events/{id}', [$checkInController, 'getEvent'], []);
-        $router->post('/checkin', [$checkInController, 'recordAttendance'], []);
-        $router->get('/search-attendee', [$checkInController, 'searchAttendee'], []);
-        $router->get('/attendees', [$checkInController, 'getAttendees'], []);
-        $router->get('/attendees/card-types', [$checkInController, 'getCardTypes'], []);
-        $router->post('/attendees/mark-print-status', [$checkInController, 'updatePrintStatus'], []);
+        $router->get('/events/{id}', [$checkInController, 'getEvent'], ['edit_posts']);
+        $router->post('/checkin', [$checkInController, 'recordAttendance'], ['edit_posts']);
+        $router->get('/search-attendee', [$checkInController, 'searchAttendee'], ['edit_posts']);
+        $router->get('/attendees', [$checkInController, 'getAttendees'], ['manage_options']);
+        $router->get('/attendees/card-types', [$checkInController, 'getCardTypes'], ['edit_posts']);
+        $router->post('/attendees/mark-print-status', [$checkInController, 'updatePrintStatus'], ['manage_options']);
+
     }
 
     public function checkPermission()

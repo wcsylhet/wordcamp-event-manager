@@ -8,6 +8,7 @@ if (!defined('ABSPATH')) {
 <head>
     <meta charSet="utf-8"/>
     <title>Organizer's Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript">
         window.WordCampEntryAdmin = <?php echo json_encode($adminVars); ?>;
     </script>
