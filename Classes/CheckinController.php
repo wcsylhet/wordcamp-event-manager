@@ -267,6 +267,7 @@ class CheckInController
         $attendee->events = $this->getEventsByAttendedId($attendee->id);
 
         $attendee->avatar = get_avatar_url($attendee->email);
+        $attendee->other_details = maybe_unserialize($attendee->other_details);
 
         return [
             'attendee' => $attendee
@@ -278,7 +279,22 @@ class CheckInController
         $attendee_id = (int)$request->get_param('attendee_id');
         $event_id = (int)$request->get_param('event_id');
 
+
         global $wpdb;
+
+        // check if already checked in exists
+
+        $checkedIn = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}wep_attendee_events WHERE attendee_id = %d AND event_id = %d",
+                $attendee_id,
+                $event_id
+            )
+        );
+
+        if($checkedIn) {
+            return new \WP_Error(423, 'Already checked in');
+        }
 
         $attendee = $wpdb->get_row(
             $wpdb->prepare(

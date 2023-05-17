@@ -17,16 +17,18 @@
                     </el-col>
                     <el-col md="18" :sm="12">
                         <h4 style="margin: 5px 0">Search Attendee by ID or Email</h4>
-                        <el-input clearable size="large" v-loading="saving" @keyup.enter.native="searchAttendee" v-model="search"
+                        <el-input clearable size="large" v-loading="saving" @keyup.enter.native="searchAttendee()" v-model="search"
                                   placeholder="Search Attendee">
                             <template #append>
-                                <el-button @click="searchAttendee" type="success">Find</el-button>
+                                <el-button @click="searchAttendee()" type="success">Find</el-button>
                             </template>
                         </el-input>
                     </el-col>
                 </el-row>
             </div>
-            <el-skeleton v-if="loading" :animated="true" :rows="5"></el-skeleton>
+            <div v-if="loading" class="box_body">
+                <el-skeleton :animated="true" :rows="5"></el-skeleton>
+            </div>
             <div v-if="attendee" class="attendee_card">
                 <div class="box_header">
                     <div class="box_head">
@@ -90,6 +92,11 @@
                                         </li>
                                     </ul>
                                 </div>
+
+                                <el-checkbox v-model="show_all" true-label="yes" false-label="no">Show Raw Data</el-checkbox>
+                                <div v-if="show_all == 'yes'">
+                                    <pre>{{attendee}}</pre>
+                                </div>
                             </div>
                         </el-col>
                     </el-row>
@@ -118,7 +125,8 @@ export default {
             loading: false,
             event_id: this.$route.params.id,
             saving: false,
-            fetchingEvent: false
+            fetchingEvent: false,
+            show_all: 'no'
         }
     },
     computed: {
@@ -155,18 +163,21 @@ export default {
                     this.fetchingEvent = false;
                 });
         },
-        handleScan(code) {
+        handleScan(code, auto_checkin) {
             if (code == this.search) {
                 return;
             }
             this.search = code;
-            this.searchAttendee();
+            this.searchAttendee(auto_checkin);
         },
-        searchAttendee() {
+        searchAttendee(auto_checkin = false) {
             this.loading = true;
-            this.$get('search-attendee', {search: this.search})
+            this.$get('search-attendee', { search: this.search })
                 .then(response => {
                     this.attendee = response.attendee;
+                    if(auto_checkin == 'yes' && response.attendee) {
+                        this.checkin();
+                    }
                 })
                 .catch((errors) => {
                     this.$handleError(errors);

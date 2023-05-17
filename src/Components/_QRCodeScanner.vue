@@ -10,6 +10,8 @@
                 :value="item.id">
             </el-option>
         </el-select>
+
+        <el-checkbox v-if="selectedCamera" v-model="auto_checkin" true-label="yes" false-label="no">Enable Auto Checkin</el-checkbox>
     </div>
 </template>
 
@@ -24,7 +26,8 @@ export default {
             cameras: [],
             selectedCamera: null,
             selectCameraModal: false,
-            deviceLoading: false
+            deviceLoading: false,
+            auto_checkin: 'no'
         }
     },
     methods: {
@@ -59,7 +62,7 @@ export default {
                 });
         },
         emitScanSuccess(code) {
-            this.$emit('scanned', code);
+            this.$emit('scanned', code, this.auto_checkin);
         }
     }
 }
