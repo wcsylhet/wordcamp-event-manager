@@ -7,6 +7,8 @@ class Hooks
     public function register()
     {
         add_action('wp_ajax_syl_event_attendee_export', [$this, 'exportAttendees']);
+        add_action('wp_ajax_syl_attendee_counter', [$this, 'getAttendeeCounter']);
+        add_action('wp_ajax_nopriv_syl_attendee_counter', [$this, 'getAttendeeCounter']);
     }
 
     public function exportAttendees()
@@ -56,6 +58,50 @@ class Hooks
 
         // Exit from file
         exit();
+
+    }
+
+    public function getAttendeeCounter()
+    {
+        $attendeeId = isset($_REQUEST['attendee_uid']) ? (int) $_REQUEST['attendee_uid'] : 0;
+
+        if(!$attendeeId) {
+            wp_send_json_error([
+                'message' => '<p class="error">A Valid 4 digit attendee ID is required</p>'
+            ], 423);
+        }
+
+        $attendee = AttendeeModel::getAttendee($attendeeId, 'attendee_uid');
+
+        if(!$attendee) {
+            wp_send_json_error([
+                'message' => '<p class="error">We could not find your registration counter. Please contact with a volunteer</p>'
+            ], 423);
+        }
+
+        ob_start();
+        ?>
+
+        <div class="result_item">
+            <div class="form_field">
+                <label for="attendee_id">Your Registration Booth</label>
+            </div>
+            <div class="form_field">
+                <div class="booth_card">
+                    <span><?php echo $attendee->counter; ?></span>
+                </div>
+                <div class="qr_code">
+                    <img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=<?php echo $attendee->attendee_uid; ?>&&chld=L|1&choe=UTF-8" />
+                </div>
+            </div>
+        </div>
+        <?php
+
+        $html = ob_get_clean();
+
+        wp_send_json([
+            'message' => $html
+        ], 200);
 
     }
 

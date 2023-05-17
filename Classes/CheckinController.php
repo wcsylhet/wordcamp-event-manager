@@ -2,7 +2,7 @@
 
 namespace WordCampEntryPass\Classes;
 
-class CheckinController
+class CheckInController
 {
     public function events(\WP_REST_Request $request)
     {
@@ -11,6 +11,20 @@ class CheckinController
         $tableName = $wpdb->prefix . 'wep_events';
 
         $events = $wpdb->get_results("SELECT * FROM $tableName");
+
+        $totalAttendees = $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}wep_attendees"
+        );
+
+        foreach ($events as $event) {
+            $event->checked_in_count = $wpdb->get_var(
+                $wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$wpdb->prefix}wep_attendee_events WHERE event_id = %d",
+                    $event->id
+                )
+            );
+            $event->total_attendees = $totalAttendees;
+        }
 
         return [
             'events' => $events
@@ -222,7 +236,7 @@ class CheckinController
         ];
     }
 
-    public function searchAttendee(\WP_REST_Request $request,)
+    public function searchAttendee(\WP_REST_Request $request)
     {
         global $wpdb;
 

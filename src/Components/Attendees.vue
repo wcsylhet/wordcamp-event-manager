@@ -139,7 +139,8 @@ export default {
             let formData = new FormData(form);
             this.$rawRequest('attendees/import', formData)
                 .then(response => {
-                    console.log(response);
+                    this.fetchAttendees();
+                    this.dialogVisible = false;
                 })
                 .catch(error => {
                     console.log(error);

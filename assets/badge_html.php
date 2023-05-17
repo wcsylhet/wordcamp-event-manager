@@ -1,4 +1,7 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
 /*
  * var $attendees array;
  * set browser window size to 1134 * 1701 on responsive mode

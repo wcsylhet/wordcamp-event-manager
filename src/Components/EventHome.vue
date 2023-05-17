@@ -43,13 +43,14 @@
                         <el-col :md="3" :sm="12">
                             <div class="attendee_avatar">
                                 <img :src="attendee.avatar" alt="Avatar">
-                                <el-tag type="success">{{ attendee.attendee_type }}</el-tag>
+                                <el-tag type="info">{{ attendee.attendee_type }}</el-tag>
                             </div>
                         </el-col>
                         <el-col :md="21" :sm="12">
                             <div class="attendee_info">
                                 <h3>
                                     {{ attendee.first_name }} {{ attendee.last_name }}
+                                    <el-tag type="primary">{{ attendee.counter }}</el-tag>
                                 </h3>
                                 <ul class="listed_data">
                                     <li>{{ attendee.email }}</li>

@@ -24,6 +24,10 @@ if (!defined('WP_SYL_ORGANIZER_PORTAL_SLUG')) {
     define('WP_SYL_ORGANIZER_PORTAL_SLUG', 'portal');
 }
 
+if (!defined('WP_SYL_COUNTER_FINDER')) {
+    define('WP_SYL_COUNTER_FINDER', 'registration');
+}
+
 class WordCampEntryPass
 {
 
@@ -43,7 +47,7 @@ class WordCampEntryPass
             // add a custom url endpoint with the WP_SYL_ORGANIZER_PORTAL_SLUG
             add_action('template_redirect', function ($template) {
                 if (get_query_var('name') == WP_SYL_ORGANIZER_PORTAL_SLUG) {
-                    if(is_user_logged_in()) {
+                    if (is_user_logged_in()) {
                         header('HTTP/1.1 200 OK');
                         $adminVars = $this->getAppVars();
                         include WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'assets/portal.php';
@@ -53,9 +57,48 @@ class WordCampEntryPass
             });
         }
 
+        if (defined('WP_SYL_COUNTER_FINDER')) {
+            // add a custom url endpoint with the WP_SYL_ORGANIZER_PORTAL_SLUG
+            add_action('template_redirect', function ($template) {
+                if (get_query_var('name') == WP_SYL_COUNTER_FINDER) {
+                    $attendee = null;
+
+                    if(!empty($_REQUEST['attendee'])) {
+                        $attendeeId = (int) $_REQUEST['attendee'];
+                        $attendee = \WordCampEntryPass\Classes\AttendeeModel::getAttendee($attendeeId, 'attendee_uid');
+                    }
+
+                    header('HTTP/1.1 200 OK');
+
+                    include WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'assets/counter.php';
+                    exit();
+                }
+            });
+        }
+
         if (defined('WP_CLI') && WP_CLI) {
-            require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/CLITool.php';
+            require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/CLITool.php';
             \WP_CLI::add_command('syl_event', '\WordCampEntryPass\Classes\CLITool');
+        }
+
+        if(isset($_REQUEST['find-counter'])) {
+            $attendeeId = (int) $_REQUEST['find-counter'];
+            $attendee = null;
+            if($attendeeId) {
+                $attendee = \WordCampEntryPass\Classes\AttendeeModel::getAttendee($attendeeId, 'attendee_uid');
+            }
+
+            $file = WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'dist/img/counters/pending.png';
+
+            if($attendee && $attendee->counter) {
+                $file = WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'dist/img/counters/counter_' . strtolower($attendee->counter) . '.png';
+            }
+
+            header('Content-Encoding: none');
+            header('Content-Type: image/png');
+            header('Content-Length: '.filesize($file));
+            echo readfile($file);
+            die();
         }
     }
 
@@ -104,11 +147,11 @@ class WordCampEntryPass
 
     private function loadDependencies()
     {
-        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/AttendeeModel.php';
-        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/Router.php';
-        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/CheckInController.php';
-        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/IdPrinter.php';
-        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/Hooks.php';
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/AttendeeModel.php';
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/Router.php';
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/CheckInController.php';
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/IdPrinter.php';
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/Hooks.php';
     }
 
     private function getAppVars()
@@ -116,30 +159,31 @@ class WordCampEntryPass
         $user = get_user_by('ID', get_current_user_id());
 
         return [
-            "name"  => 'WordCamp Entry Pass',
-            "slug"  => 'wordcamp-entry-pass',
-            "nonce" => wp_create_nonce("wp_rest"),
+            "name"     => 'WordCamp Entry Pass',
+            "slug"     => 'wordcamp-entry-pass',
+            "nonce"    => wp_create_nonce("wp_rest"),
             'site_url' => site_url('/'),
             'ajax_url' => admin_url('admin-ajax.php'),
-            'rest'  => [
+            'rest'     => [
                 'url'       => rest_url($this->namespace),
                 'nonce'     => wp_create_nonce('wp_rest'),
                 'namespace' => $this->namespace,
                 'version'   => '1'
             ],
-            'me'    => [
+            'me'       => [
                 'full_name' => $user->display_name
             ],
-            'i18n'  => [
+            'i18n'     => [
                 'search_attendee' => __('Search Attendee', 'wordcamp-entry-pass'),
-            ]
+            ],
+            'is_admin' => current_user_can('manage_options') ? 'yes' : 'no'
         ];
     }
 }
 
 function wp_entry_pass_activate()
 {
-    require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . '/classes/Activate.php';
+    require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/Activate.php';
     (new \WordCampEntryPass\Classes\Activate())->migrateDb();
 }
 
