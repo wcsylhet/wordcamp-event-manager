@@ -245,7 +245,7 @@ class CheckInController
         $tableName = $wpdb->prefix . 'wep_attendees';
 
         $attendee = null;
-
+        $otherData = null;
         if (is_numeric($id)) {
             $attendee = $wpdb->get_row(
                 $wpdb->prepare(
@@ -256,8 +256,16 @@ class CheckInController
         } else if (is_string($id)) {
             $id = esc_sql($id);
             $attendee = $wpdb->get_row(
-                "SELECT * FROM $tableName WHERE `email` LIKE ' % $id % '",
+                "SELECT * FROM $tableName WHERE `email` LIKE '%$id%'",
             );
+
+          //  var_dump($wpdb->last_query); die();
+
+            if($attendee) {
+                $attendee->related_attendees = $wpdb->get_results(
+                    "SELECT attendee_uid, first_name, last_name, email FROM $tableName WHERE `email` LIKE '%$id%' AND attendee_uid != $attendee->attendee_uid",
+                );
+            }
         }
 
         if (!$attendee) {

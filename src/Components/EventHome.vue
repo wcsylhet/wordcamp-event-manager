@@ -55,7 +55,7 @@
                                     <el-tag type="primary">{{ attendee.counter }}</el-tag>
                                 </h3>
                                 <ul class="listed_data">
-                                    <li>{{ attendee.email }}</li>
+                                    <li>{{ attendee.email }} / {{ attendee.ticket_type }}</li>
                                     <li>
                                         <span class="icon">
                                             <svg fill="#000000" version="1.1" id="Capa_1"
