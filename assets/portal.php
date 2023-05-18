@@ -78,5 +78,9 @@ if (!defined('ABSPATH')) {
 </div>
 <script type='text/javascript' src='<?php echo site_url('/wp-includes/js/jquery/jquery.min.js?ver=3.6.3');?>' id='jquery-core-js'></script>
 <script type='text/javascript' src='<?php echo WP_SYL_ENTRY_PASS_PLUGIN_URL . 'dist/app.js'; ?>'></script>
+
+<p style="text-align: center; margin-top: 200px;">
+    <a href="<?php echo wp_logout_url(); ?>">Logout</a>
+</p>
 </body>
 </html>
