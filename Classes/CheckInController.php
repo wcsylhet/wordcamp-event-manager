@@ -249,7 +249,7 @@ class CheckInController
         if (is_numeric($id)) {
             $attendee = $wpdb->get_row(
                 $wpdb->prepare(
-                    "SELECT * FROM $tableName WHERE attendee_uid = %d",
+                    "SELECT * FROM $tableName WHERE card_id = %d",
                     $id
                 )
             );
@@ -258,8 +258,6 @@ class CheckInController
             $attendee = $wpdb->get_row(
                 "SELECT * FROM $tableName WHERE `email` LIKE '%$id%'",
             );
-
-          //  var_dump($wpdb->last_query); die();
 
             if($attendee) {
                 $attendee->related_attendees = $wpdb->get_results(

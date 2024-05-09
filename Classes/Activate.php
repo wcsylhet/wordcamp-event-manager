@@ -23,13 +23,17 @@ class Activate
             $sql = "CREATE TABLE $tableName (
                 id bigint UNSIGNED NOT NULL AUTO_INCREMENT,
                 attendee_uid varchar(30) NOT NULL,
+                card_id INT NOT NULL,
                 ticket_type varchar(194) NULL,
+                secret_key varchar(100) NULL,
                 attendee_type varchar(50) NULL,
                 counter varchar(192) NULL,
                 tshirt_size varchar(100) NULL,
                 first_name varchar(192) NOT NULL,
                 last_name varchar(192) NULL,
                 email varchar(194) NOT NULL,
+                buyer_name varchar(194) NOT NULL,
+                buyer_email varchar(194) NOT NULL,
                 id_printed varchar(50) NOT NULL DEFAULT 'no',
                 twitter_username varchar(194) NOT NULL,
                 phone_number varchar(50) NULL,
@@ -39,7 +43,9 @@ class Activate
                 other_details LONGTEXT NULL DEFAULT NULL,
                 PRIMARY KEY  (id),
                 KEY attendee_uid (attendee_uid),
-                KEY email (email)
+                KEY card_id (card_id),
+                KEY email (email),
+                KEY secret_key (secret_key)
             ) $charsetCollate;";
             dbDelta($sql);
         }

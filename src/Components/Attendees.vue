@@ -43,13 +43,14 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="attendee_uid" label="UID" width="90"></el-table-column>
+                    <el-table-column prop="card_id" label="Card ID" width="90"></el-table-column>
                     <el-table-column :min-width="200" prop="first_name" label="Name">
                         <template #default="scope">
                             <span>{{ scope.row.first_name }} {{ scope.row.last_name }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column :min-width="230" prop="email" label="Email"></el-table-column>
-                    <el-table-column prop="ticket_type" label="Ticket Type" width="220"></el-table-column>
+                    <el-table-column prop="ticket_type" label="Ticket Type" width="180"></el-table-column>
                     <el-table-column prop="attendee_type" label="Attendee Type" width="130"></el-table-column>
                     <el-table-column prop="counter" label="Counter" width="90"></el-table-column>
                     <el-table-column prop="tshirt_size" label="T-Shirt Size" width="120"></el-table-column>
@@ -114,6 +115,7 @@ export default {
             uploading: false,
             columns: [
                 'attendee_uid',
+                'card_id',
                 'ticket_type',
                 'attendee_type',
                 'counter',
@@ -124,7 +126,13 @@ export default {
                 'last_modified_at',
                 'twitter_username',
                 'tshirt_size',
-                'phone_number'
+                'phone_number',
+                'id_printed',
+                'buyer_name',
+                'buyer_email',
+                'country',
+                'purchase_at',
+                'last_modified_at'
             ],
             update_if_exist: 'no',
             search: '',

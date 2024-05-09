@@ -79,12 +79,10 @@ if (!defined('ABSPATH')) {
         }
         .header {
             text-align: center;
-            border-bottom: 1px solid #d1d1d1;
             padding-bottom: 20px;
         }
         .header img {
-            width: 64px;
-            height: 64px;
+            max-width: 200px;
             text-align: center;
             display: inline-block;
         }
@@ -133,11 +131,13 @@ if (!defined('ABSPATH')) {
         .result .form_field {
             margin-bottom: 20px;
             display: flex;
-            flex-direction: row;
-            align-content: flex-end;
+            flex-direction: column;
+            align-content: center;
             align-items: center;
             justify-content: center;
-            column-gap: 20px;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 50px;
         }
         .booth_card {
             display: inline-block;
@@ -148,10 +148,8 @@ if (!defined('ABSPATH')) {
             border-radius: 3px;
         }
         .qr_code img {
-            width: 112px;
-            height: 112px;
-            border: 7px solid #673AB7;
-            border-radius: 3px;
+            width: 216px;
+            height: 216px;
         }
         p.error {
             background: red;
@@ -164,74 +162,29 @@ if (!defined('ABSPATH')) {
 <div id="app">
     <div id="wordcamp_counter">
         <div class="header">
-            <img src="https://sylhet.wordcamp.org/2023/files/2023/03/wcsyl_23-1-150x150.png" />
-            <h1>Find Your Registration Counter - WordCamp Sylhet</h1>
+            <img src="https://i0.wp.com/sylhet.wordcamp.org/2024/files/2024/02/wc-sylhet-logo-white@2x.png" />
+            <h1>Your Registration Counter - WordCamp Sylhet 2024</h1>
         </div>
-        <div id="form" class="form">
-            <div class="form_field">
-                <label for="attendee_id">Your Attendee ID</label>
-                <input value="<?php echo ($attendee) ? $attendee->attendee_uid : ''; ?>" type="number" required placeholder="ex: 1234" name="attendee_id" id="attendee_id" />
-            </div>
-            <div class="form_field">
-                <button id="submit">Find Registration Booth</button>
-            </div>
-        </div>
+
         <div id="result" class="result">
             <?php if($attendee): ?>
             <div class="result_item">
                 <div class="form_field">
-                    <label for="attendee_id">Your Registration Booth</label>
-                </div>
-                <div class="form_field">
                     <div class="booth_card">
-                        <span><?php echo $attendee->counter; ?></span>
+                        <span>Counter: <br /><?php echo $attendee->counter; ?></span>
                     </div>
                     <div class="qr_code">
-                        <img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=<?php echo $attendee->attendee_uid; ?>&&chld=L|1&choe=UTF-8" />
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo $attendee->secret_key; ?>" />
                     </div>
                 </div>
             </div>
+            <?php else: ?>
+            <h3>Please meet at WordCamp Sylhet Service Desk at the venue</h3>
             <?php endif; ?>
         </div>
     </div>
 </div>
-<script type='text/javascript' src='<?php echo site_url('/wp-includes/js/jquery/jquery.min.js?ver=3.6.3');?>' id='jquery-core-js'></script>
 
-<script type="text/javascript">
-    jQuery(document).ready(function ($) {
-        $('#submit').on('click', function (e) {
-            e.preventDefault();
-            var attendee_id = $('#attendee_id').val();
-            if(attendee_id == '') {
-                alert('Please enter your Attendee ID');
-                return false;
-            }
-
-            window.jQuery.ajax({
-                url: "<?php echo admin_url('admin-ajax.php');  ?>",
-                type: 'POST',
-                data: {
-                    action: 'syl_attendee_counter',
-                    attendee_uid: attendee_id
-                },
-                cache: false
-            })
-                .then(function (response) {
-                    $('#result').html(response.message);
-                })
-                .fail(function (error) {
-                    if(error.responseJSON && error.responseJSON.data && error.responseJSON.data.message) {
-                        $('#result').html(error.responseJSON.data.message);
-                    } else {
-                        $('#result').html(error.responseText);
-                    }
-                })
-                .always(function () {
-                    console.log('complete');
-                });
-        });
-    });
-</script>
 
 </body>
 </html>

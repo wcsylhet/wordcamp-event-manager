@@ -63,17 +63,17 @@ class Hooks
 
     public function getAttendeeCounter()
     {
-        $attendeeId = isset($_REQUEST['attendee_uid']) ? (int) $_REQUEST['attendee_uid'] : 0;
+        $attendeeId = isset($_REQUEST['attendee_email']) ? sanitize_text_field($_REQUEST['attendee_email']) : 0;
 
-        if(!$attendeeId) {
+        if(!$attendeeId || !is_email($attendeeId)) {
             wp_send_json_error([
-                'message' => '<p class="error">A Valid 4 digit attendee ID is required</p>'
+                'message' => '<p class="error">A Valid email is required</p>'
             ], 423);
         }
 
-        $attendee = AttendeeModel::getAttendee($attendeeId, 'attendee_uid');
+        $attendees = AttendeeModel::getAttendeesBy($attendeeId, 'email');
 
-        if(!$attendee) {
+        if(!$attendees) {
             wp_send_json_error([
                 'message' => '<p class="error">We could not find your registration counter. Please contact with a volunteer</p>'
             ], 423);
@@ -86,14 +86,20 @@ class Hooks
             <div class="form_field">
                 <label for="attendee_id">Your Registration Booth</label>
             </div>
+            <?php foreach ($attendees as $attendee): ?>
             <div class="form_field">
                 <div class="booth_card">
-                    <span><?php echo $attendee->counter; ?></span>
+                    <span>Card ID:<br /><?php echo $attendee->card_id; ?></span>
+                </div>
+
+                <div class="booth_card">
+                    <span>Counter<br /><?php echo $attendee->counter; ?></span>
                 </div>
                 <div class="qr_code">
-                    <img src="https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=<?php echo $attendee->attendee_uid; ?>&&chld=L|1&choe=UTF-8" />
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo $attendee->id; ?>" />
                 </div>
             </div>
+            <?php endforeach; ?>
         </div>
         <?php
 

@@ -1,5 +1,6 @@
 import Dashboard from './Components/Dashboard.vue';
 import EventHome from './Components/EventHome.vue';
+import AllCheckInPage from './Components/AllCheckInPage.vue';
 import Administration from './Components/Adminstrator.vue';
 import Attendees from './Components/Attendees.vue';
 import IdCardPrinter from './Components/Parts/IdCardPrinter.vue';
@@ -17,6 +18,14 @@ export var routes = [
         path: '/event/:id',
         name: 'event_home',
         component: EventHome,
+        meta: {
+            active: 'event_home'
+        }
+    },
+    {
+        path: '/all_checkin',
+        name: 'all_check_in',
+        component: AllCheckInPage,
         meta: {
             active: 'event_home'
         }

@@ -81,6 +81,7 @@ class AttendeeModel
     {
         return [
             'attendee_uid',
+            'card_id',
             'ticket_type',
             'attendee_type',
             'counter',
@@ -92,7 +93,12 @@ class AttendeeModel
             'twitter_username',
             'tshirt_size',
             'phone_number',
-            'id_printed'
+            'id_printed',
+            'buyer_name',
+            'buyer_email',
+            'country',
+            'purchase_at',
+            'last_modified_at'
         ];
     }
 
@@ -111,6 +117,23 @@ class AttendeeModel
         }
 
         return $attendee;
+    }
+
+    public static function getAttendeesBy($value, $column = 'id')
+    {
+        global $wpdb;
+
+        $tableName = $wpdb->prefix . self::$table;
+
+        $sql = "SELECT * FROM $tableName WHERE $column = %s";
+
+        $attendees = $wpdb->get_results($wpdb->prepare($sql, $value));
+
+        foreach ($attendees as $attendee) {
+            $attendee->other_details = maybe_unserialize($attendee->other_details);
+        }
+
+        return $attendees;
     }
 
     public static function update($id, $data)
@@ -137,6 +160,17 @@ class AttendeeModel
         }
 
         return $attendees;
+    }
+
+    public static function getAll()
+    {
+        global $wpdb;
+
+        $tableName = $wpdb->prefix . self::$table;
+
+        $sql = "SELECT * FROM $tableName";
+
+        return $wpdb->get_results($sql);
     }
 
 }

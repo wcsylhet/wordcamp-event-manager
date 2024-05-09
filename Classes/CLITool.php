@@ -147,4 +147,30 @@ class CLITool
 
         return 'E';
     }
+
+
+    public function generate_secret()
+    {
+        $attendees = AttendeeModel::getAll();
+
+        $counter = 0;
+        foreach ($attendees as $attendee) {
+            if($attendee->secret_key) {
+                continue;
+            }
+
+            // get random 6 character string
+            $secret = substr(str_shuffle(str_repeat('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', 6)), 0, 6);
+            $secret.= '-'.$attendee->id;
+
+            AttendeeModel::update($attendee->id, [
+                'secret_key' => $secret
+            ]);
+
+            $counter++;
+        }
+
+        \WP_CLI::line(sprintf('Added Secret For: %d', $counter));
+
+    }
 }

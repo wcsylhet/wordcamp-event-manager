@@ -35,6 +35,34 @@ class WordCampEntryPass
 
     public function boot()
     {
+
+        add_action('init', function () {
+            if (!isset($_REQUEST['attendee_mail'])) {
+                return;
+            }
+
+            $email = $_REQUEST['attendee_mail'];
+            $uid = (int)$_REQUEST['attendee_uid'];
+
+            $attendee = \WordCampEntryPass\Classes\AttendeeModel::getAttendee($uid, 'attendee_uid');
+
+            if (!$attendee || $attendee->email != $email) {
+                header('Content-Type: image/png');
+                readfile(WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'dist/img/counters/pending.png');
+                die();
+            }
+
+            $generator = new \WordCampEntryPass\Classes\QRCode($attendee->secret_key, [
+                'w' => 300,
+                'h' => 300
+            ]);
+
+            header('Content-Type: image/png');
+            $generator->output_image();
+            die();
+
+        }, 1);
+
         $this->loadDependencies();
 
         add_action('admin_menu', [$this, 'registerAdminMenu']);
@@ -57,16 +85,18 @@ class WordCampEntryPass
             });
         }
 
-
         if (defined('WP_SYL_COUNTER_FINDER')) {
             // add a custom url endpoint with the WP_SYL_ORGANIZER_PORTAL_SLUG
             add_action('template_redirect', function ($template) {
                 if (get_query_var('name') == WP_SYL_COUNTER_FINDER) {
-                    $attendee = null;
 
-                    if(!empty($_REQUEST['attendee'])) {
-                        $attendeeId = (int) $_REQUEST['attendee'];
-                        $attendee = \WordCampEntryPass\Classes\AttendeeModel::getAttendee($attendeeId, 'attendee_uid');
+                    $email = $this->get($_REQUEST, 'attendee');
+                    $uid = (int) $this->get($_REQUEST, 'uid');
+
+                    $attendee = \WordCampEntryPass\Classes\AttendeeModel::getAttendee($uid, 'attendee_uid');
+
+                    if(!$attendee || $attendee->email != $email) {
+                        $attendee = null;
                     }
 
                     header('HTTP/1.1 200 OK');
@@ -74,6 +104,7 @@ class WordCampEntryPass
                     include WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'assets/counter.php';
                     exit();
                 }
+
             });
         }
 
@@ -82,22 +113,22 @@ class WordCampEntryPass
             \WP_CLI::add_command('syl_event', '\WordCampEntryPass\Classes\CLITool');
         }
 
-        if(isset($_REQUEST['find-counter'])) {
-            $attendeeId = (int) $_REQUEST['find-counter'];
+        if (isset($_REQUEST['find-counter'])) {
+            $attendeeId = (int)$_REQUEST['find-counter'];
             $attendee = null;
-            if($attendeeId) {
+            if ($attendeeId) {
                 $attendee = \WordCampEntryPass\Classes\AttendeeModel::getAttendee($attendeeId, 'attendee_uid');
             }
 
             $file = WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'dist/img/counters/pending.png';
 
-            if($attendee && $attendee->counter) {
+            if ($attendee && $attendee->counter) {
                 $file = WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'dist/img/counters/counter_' . strtolower($attendee->counter) . '.png';
             }
 
             header('Content-Encoding: none');
             header('Content-Type: image/png');
-            header('Content-Length: '.filesize($file));
+            header('Content-Length: ' . filesize($file));
             echo readfile($file);
             die();
         }
@@ -154,6 +185,7 @@ class WordCampEntryPass
         require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/CheckInController.php';
         require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/IdPrinter.php';
         require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/Hooks.php';
+        require_once WP_SYL_ENTRY_PASS_PLUGIN_DIR . 'Classes/QrCode.php';
     }
 
     private function getAppVars()
@@ -180,6 +212,11 @@ class WordCampEntryPass
             ],
             'is_admin' => current_user_can('manage_options') ? 'yes' : 'no'
         ];
+    }
+
+    public function get($arr, $key)
+    {
+        return $arr[$key] ?? null;
     }
 }
 

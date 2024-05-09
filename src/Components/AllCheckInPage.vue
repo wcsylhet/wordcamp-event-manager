@@ -1,0 +1,235 @@
+<template>
+    <div class="event_home box_wrapper">
+        <div v-loading="fetchingEvent" class="box_narrow">
+            <div class="box_header">
+                <div class="box_head">
+                    <el-breadcrumb separator-class="el-icon-arrow-right">
+                        <el-breadcrumb-item style="font-size: 18px;" :to="{ name: 'dashboard' }">Dashboard
+                        </el-breadcrumb-item>
+                        <el-breadcrumb-item style="font-size: 18px;">All Checkins</el-breadcrumb-item>
+                    </el-breadcrumb>
+                </div>
+            </div>
+            <div class="box_body" style="margin-bottom: 20px; padding-bottom: 10px;">
+                <el-row :gutter="20">
+                    <el-col :md="6" :sm="12">
+                        <qr-code-scanner :loading="loading" @scanned="handleScan"/>
+                    </el-col>
+                    <el-col md="18" :sm="12">
+                        <h4 style="margin: 5px 0">Search Attendee by ID or Email</h4>
+                        <el-input clearable size="large" v-loading="saving" @keyup.enter.native="searchAttendee()"
+                                  v-model="search"
+                                  placeholder="Search Attendee">
+                            <template #append>
+                                <el-button @click="searchAttendee()" type="success">Find</el-button>
+                            </template>
+                        </el-input>
+                    </el-col>
+                </el-row>
+            </div>
+            <div v-if="loading" class="box_body">
+                <el-skeleton :animated="true" :rows="5"></el-skeleton>
+            </div>
+            <div v-if="attendee" class="attendee_card">
+                <div class="box_header">
+                    <div class="box_head">
+                        <h3>Attendee Details</h3>
+                        <el-tag type="danger">{{ attendee.card_id }}</el-tag>
+                    </div>
+                    <div class="box_actions">
+
+                    </div>
+                </div>
+                <div class="bulk_check_header">
+                    <el-checkbox-group v-model="checkins">
+                        <el-checkbox v-for="eventItem in events" :disabled="isEventDisabled(eventItem.id)"
+                                     :label="eventItem.id">{{ eventItem.title }}
+                        </el-checkbox>
+                    </el-checkbox-group>
+
+                    <el-button @click="checkIn" style="margin-top: 20px;" size="large" type="success">Checkin</el-button>
+
+                </div>
+                <div class="box_body">
+                    <el-row :gutter="20">
+                        <el-col :md="3" :sm="12">
+                            <div class="attendee_avatar">
+                                <img :src="attendee.avatar" alt="Avatar">
+                                <el-tag type="info">{{ attendee.attendee_type }}</el-tag>
+                            </div>
+                        </el-col>
+                        <el-col :md="21" :sm="12">
+                            <div class="attendee_info">
+                                <h3>
+                                    {{ attendee.first_name }} {{ attendee.last_name }}
+                                    <el-tag type="primary">{{ attendee.counter }}</el-tag>
+                                </h3>
+                                <ul class="listed_data">
+                                    <li>{{ attendee.email }} / {{ attendee.ticket_type }}</li>
+                                    <li>
+                                        <span class="icon">
+                                            <svg fill="#000000" version="1.1" id="Capa_1"
+                                                 xmlns="http://www.w3.org/2000/svg"
+                                                 xmlns:xlink="http://www.w3.org/1999/xlink"
+                                                 viewBox="0 0 295.526 295.526" xml:space="preserve">
+<g>
+	<path d="M147.763,44.074c12.801,0,23.858-8.162,27.83-20.169c-7.578,2.086-17.237,3.345-27.83,3.345
+		c-10.592,0-20.251-1.259-27.828-3.345C123.905,35.911,134.961,44.074,147.763,44.074z"/>
+	<path d="M295.158,58.839c-0.608-1.706-1.873-3.109-3.521-3.873l-56.343-26.01c-11.985-4.06-24.195-7.267-36.524-9.611
+		c-0.434-0.085-0.866-0.126-1.292-0.126c-3.052,0-5.785,2.107-6.465,5.197c-4.502,19.82-22.047,34.659-43.251,34.659
+		c-21.203,0-38.749-14.838-43.25-34.659c-0.688-3.09-3.416-5.197-6.466-5.197c-0.426,0-0.858,0.041-1.292,0.126
+		c-12.328,2.344-24.538,5.551-36.542,9.611L3.889,54.965c-1.658,0.764-2.932,2.167-3.511,3.873
+		c-0.599,1.726-0.491,3.589,0.353,5.217l24.46,48.272c1.145,2.291,3.474,3.666,5.938,3.666c0.636,0,1.281-0.092,1.917-0.283
+		l27.167-8.052v161.97c0,3.678,3.001,6.678,6.689,6.678h161.723c3.678,0,6.67-3.001,6.67-6.678V107.66l27.186,8.052
+		c0.636,0.191,1.28,0.283,1.915,0.283c2.459,0,4.779-1.375,5.94-3.666l24.469-48.272C295.629,62.428,295.747,60.565,295.158,58.839z
+		"/>
+</g>
+</svg>
+                                        </span>
+                                        {{ attendee.tshirt_size }}
+                                    </li>
+                                    <li>Purchase Date: {{ attendee.purchase_at }}</li>
+                                </ul>
+
+                                <div v-if="attendee.events && attendee.events.length" class="pl-2 mb-4">
+                                    <h3>Completed Events:</h3>
+                                    <ul class="listed_data">
+                                        <li v-for="eventItem in attendee.events" :key="eventItem.id">
+                                            <el-icon>
+                                                <SelectIcon/>
+                                            </el-icon>
+                                            {{ eventItem.title }} @ {{ eventItem.created_at }}
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <el-checkbox v-model="show_all" true-label="yes" false-label="no">Show Raw Data
+                                </el-checkbox>
+                                <div v-if="show_all == 'yes'">
+                                    <pre>{{ attendee }}</pre>
+                                </div>
+                            </div>
+                        </el-col>
+                    </el-row>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script type="text/babel">
+import QrCodeScanner from './_QRCodeScanner.vue'
+
+import {Select as SelectIcon} from '@element-plus/icons-vue'
+
+export default {
+    name: 'EventHome',
+    components: {
+        QrCodeScanner,
+        SelectIcon
+    },
+    data() {
+        return {
+            events: [],
+            attendee: false,
+            search: '',
+            loading: false,
+            event_id: this.$route.params.id,
+            saving: false,
+            fetchingEvent: false,
+            show_all: 'no',
+            checkins: []
+        }
+    },
+    computed: {},
+    methods: {
+        fetchEvents() {
+            this.loading = true;
+            this.$get('events')
+                .then(response => {
+                    this.events = response.events;
+                })
+                .catch((errors) => {
+                    this.$handleError(errors);
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
+        },
+        isEventDisabled(eventId) {
+            if (!this.attendee || !this.attendee.id) {
+                return false;
+            }
+
+            if (!this.attendee.events.length) {
+                return false;
+            }
+
+            const event = this.attendee.events.find(item => item.id === eventId);
+            return !!event?.id;
+        },
+        handleScan(code, auto_checkin) {
+            if (code == this.search) {
+                return;
+            }
+            this.search = code;
+            this.searchAttendee(auto_checkin);
+        },
+        searchAttendee(auto_checkin = false) {
+            this.loading = true;
+            this.$get('search-attendee', {search: this.search})
+                .then(response => {
+                    this.attendee = response.attendee;
+                    if (auto_checkin == 'yes' && response.attendee) {
+                        this.checkin();
+                    }
+                })
+                .catch((errors) => {
+                    this.$handleError(errors);
+                    this.attendee = false;
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
+        },
+        checkIn() {
+            if(!this.checkins.length) {
+                this.$notify.error('Please select checkins');
+                return;
+            }
+
+            this.saving = true;
+            this.$post('checkin', {
+                attendee_id: this.attendee.id,
+                event_id: this.event_id
+            })
+                .then(response => {
+                    this.attendee.events = response.attendee.events;
+                    this.$notify.success(response.message);
+                })
+                .catch((errors) => {
+                    this.$handleError(errors);
+                })
+                .finally(() => {
+                    this.saving = false;
+                });
+        }
+    },
+    mounted() {
+        this.fetchEvents();
+    },
+    beforeUnmount() {
+        window.currentEventItem = null;
+    }
+}
+</script>
+
+<style lang="scss">
+.bulk_check_header {
+    background: #f8eeee;
+    padding: 15px;
+    display: block;
+    overflow: hidden;
+    border: 3px solid #3F51B5;
+}
+</style>
