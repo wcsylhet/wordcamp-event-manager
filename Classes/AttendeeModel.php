@@ -98,7 +98,8 @@ class AttendeeModel
             'buyer_email',
             'country',
             'purchase_at',
-            'last_modified_at'
+            'last_modified_at',
+            'secret_key'
         ];
     }
 

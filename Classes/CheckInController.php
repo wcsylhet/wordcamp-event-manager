@@ -144,7 +144,7 @@ class CheckInController
             $missingColumns = array_diff_key(array_flip($requiredColumns), $validData);
 
             if (!empty($missingColumns) || !is_email($validData['email'])) {
-                return new \WP_Error(423, 'Missing required columns for attendee ' . $data['attendee_uid'].' or invalid email ');
+                return new \WP_Error(423, 'Missing required columns for attendee ' . $data['attendee_uid'] . ' or invalid email ');
             }
 
             // now fill $validPrimaryColumns with $validData if any key is missing
@@ -157,7 +157,7 @@ class CheckInController
             $validData['email'] = trim(strtolower($validData['email']));
             $validData['other_details'] = maybe_serialize($otherData);
 
-            if(empty($validData['id_printed'])) {
+            if (empty($validData['id_printed'])) {
                 $validData['id_printed'] = 'no';
             }
 
@@ -178,17 +178,17 @@ class CheckInController
     public function getAttendees(\WP_REST_Request $request)
     {
         $args = [
-            'search' => sanitize_text_field($request->get_param('search')),
-            'event_id' => (int) $request->get_param('event_id'),
-            'per_page' => (int) $request->get_param('per_page') ?: 10,
-            'page' => (int) $request->get_param('page') ?: 1,
+            'search'   => sanitize_text_field($request->get_param('search')),
+            'event_id' => (int)$request->get_param('event_id'),
+            'per_page' => (int)$request->get_param('per_page') ?: 10,
+            'page'     => (int)$request->get_param('page') ?: 1,
         ];
 
         $attendeesData = AttendeeModel::getAttendees($args, true);
 
         return [
             'attendees' => $attendeesData['data'],
-            'total' => $attendeesData['total']
+            'total'     => $attendeesData['total']
         ];
     }
 
@@ -212,11 +212,11 @@ class CheckInController
     {
         $type = sanitize_text_field($request->get_param('type'));
         $status = sanitize_text_field($request->get_param('status'));
-        if($status != 'yes') {
+        if ($status != 'yes') {
             $status = 'no';
         }
 
-        if(!$type) {
+        if (!$type) {
             return new \WP_Error(423, 'Type is required');
         }
 
@@ -240,13 +240,23 @@ class CheckInController
     {
         global $wpdb;
 
+        $isQr = $request->get_param('isQr') == 'yes';
+
         $id = sanitize_text_field($request->get_param('search'));
 
         $tableName = $wpdb->prefix . 'wep_attendees';
 
         $attendee = null;
         $otherData = null;
-        if (is_numeric($id)) {
+
+        if ($isQr) {
+            $attendee = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT * FROM $tableName WHERE secret_key = %s",
+                    $id
+                )
+            );
+        } else if (is_numeric($id)) {
             $attendee = $wpdb->get_row(
                 $wpdb->prepare(
                     "SELECT * FROM $tableName WHERE card_id = %d",
@@ -259,7 +269,7 @@ class CheckInController
                 "SELECT * FROM $tableName WHERE `email` LIKE '%$id%'",
             );
 
-            if($attendee) {
+            if ($attendee) {
                 $attendee->related_attendees = $wpdb->get_results(
                     "SELECT attendee_uid, first_name, last_name, email FROM $tableName WHERE `email` LIKE '%$id%' AND attendee_uid != $attendee->attendee_uid",
                 );
@@ -283,22 +293,37 @@ class CheckInController
     public function recordAttendance(\WP_REST_Request $request)
     {
         $attendee_id = (int)$request->get_param('attendee_id');
-        $event_id = (int)$request->get_param('event_id');
+        $event_ids = array_filter([(int)$request->get_param('event_id')]);
+
+        if (!$event_ids) {
+            $event_ids = array_filter(array_map('intval', $request->get_param('event_ids')));
+        }
+
+        if(!$event_ids) {
+            return new \WP_Error(422, 'Event ID is required');
+        }
 
 
         global $wpdb;
 
-        // check if already checked in exists
+        $newEventIds = [];
 
-        $checkedIn = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wep_attendee_events WHERE attendee_id = %d AND event_id = %d",
-                $attendee_id,
-                $event_id
-            )
-        );
+        foreach ($event_ids as $event_id) {
+            // check if already checked in exists
+            $checkedIn = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT * FROM {$wpdb->prefix}wep_attendee_events WHERE attendee_id = %d AND event_id = %d",
+                    $attendee_id,
+                    $event_id
+                )
+            );
 
-        if($checkedIn) {
+            if (!$checkedIn) {
+                $newEventIds[] = $event_id;
+            }
+        }
+
+        if (!$newEventIds) {
             return new \WP_Error(423, 'Already checked in');
         }
 
@@ -313,29 +338,32 @@ class CheckInController
             return new \WP_Error(423, 'No Attendee Found');
         }
 
-        $event = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wep_events WHERE id = %d",
-                $event_id
-            )
-        );
+        foreach ($newEventIds as $event_id) {
+            $event = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT * FROM {$wpdb->prefix}wep_events WHERE id = %d",
+                    $event_id
+                )
+            );
 
-        if (!$event) {
-            return new \WP_Error(423, 'Event not found');
-        }
+            if (!$event) {
+                continue;
+            }
 
-        $current_timestamp = current_time('mysql');
+            $current_timestamp = current_time('mysql');
 
-        $wpdb->get_results(
-            $wpdb->prepare(
-                "INSERT INTO {$wpdb->prefix}wep_attendee_events
+            $wpdb->query(
+                $wpdb->prepare(
+                    "INSERT INTO {$wpdb->prefix}wep_attendee_events
                     (attendee_id, event_id, created_at)
                     VALUES (%s, %d, %s)",
-                $attendee_id,
-                $event_id,
-                $current_timestamp
-            )
-        );
+                    $attendee_id,
+                    $event_id,
+                    $current_timestamp
+                )
+            );
+        }
+
 
         $attendee->events = $this->getEventsByAttendedId($attendee->id);
 

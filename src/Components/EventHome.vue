@@ -168,11 +168,14 @@ export default {
                 return;
             }
             this.search = code;
-            this.searchAttendee(auto_checkin);
+            this.searchAttendee(auto_checkin, 'yes');
         },
-        searchAttendee(auto_checkin = false) {
+        searchAttendee(auto_checkin = false, isQr = 'no') {
             this.loading = true;
-            this.$get('search-attendee', { search: this.search })
+            this.$get('search-attendee', {
+                search: this.search,
+                isQr: isQr
+            })
                 .then(response => {
                     this.attendee = response.attendee;
                     if(auto_checkin == 'yes' && response.attendee) {
