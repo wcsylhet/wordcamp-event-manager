@@ -257,12 +257,22 @@ class CheckInController
                 )
             );
         } else if (is_numeric($id)) {
-            $attendee = $wpdb->get_row(
-                $wpdb->prepare(
-                    "SELECT * FROM $tableName WHERE card_id = %d",
-                    $id
-                )
-            );
+            if($id > 1000) {
+                $attendee = $wpdb->get_row(
+                    $wpdb->prepare(
+                        "SELECT * FROM $tableName WHERE attendee_uid = %d",
+                        $id
+                    )
+                );
+            } else {
+                $attendee = $wpdb->get_row(
+                    $wpdb->prepare(
+                        "SELECT * FROM $tableName WHERE card_id = %d",
+                        $id
+                    )
+                );
+            }
+
         } else if (is_string($id)) {
             $id = esc_sql($id);
             $attendee = $wpdb->get_row(

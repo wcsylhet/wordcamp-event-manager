@@ -33,7 +33,7 @@
                 <div class="box_header">
                     <div class="box_head">
                         <h3>Attendee Details</h3>
-                        <el-tag type="danger">{{ attendee.attendee_uid }}</el-tag>
+                        <el-tag type="danger">{{ attendee.card_id }}</el-tag>
                     </div>
                     <div class="box_actions">
                         <el-button :disabled="saving" v-loading="saving" @click="checkin()" v-if="!isCheckedIn" type="danger">Mark As Checked-In</el-button>
@@ -56,6 +56,7 @@
                                 </h3>
                                 <ul class="listed_data">
                                     <li>{{ attendee.email }} / {{ attendee.ticket_type }}</li>
+                                    <li>Ticket ID: {{attendee.attendee_uid}}</li>
                                     <li>
                                         <span class="icon">
                                             <svg fill="#000000" version="1.1" id="Capa_1"

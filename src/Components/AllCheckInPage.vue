@@ -37,7 +37,7 @@
                         <el-tag type="danger">{{ attendee.card_id }}</el-tag>
                     </div>
                     <div class="box_actions">
-
+                        <h3>#{{ attendee.card_id }}</h3>
                     </div>
                 </div>
                 <div class="bulk_check_header">
@@ -66,6 +66,7 @@
                                 </h3>
                                 <ul class="listed_data">
                                     <li>{{ attendee.email }} / {{ attendee.ticket_type }}</li>
+                                    <li>Ticket ID: {{attendee.attendee_uid}}</li>
                                     <li>
                                         <span class="icon">
                                             <svg fill="#000000" version="1.1" id="Capa_1"
